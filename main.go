@@ -1,0 +1,83 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"text/template"
+)
+
+// 这种结构被称为动作(Actions)
+// {{.}}
+// 动作之外的文本会原封不动的输出
+
+// type Inventory struct {
+// 	Material string
+// 	Count    uint
+// }
+
+func main() {
+	// sweaters := Inventory{"wool", 17}
+	// tmpl, err := template.New("test").Parse("{{.Count}} items are made of {{.Material}}")
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// err = tmpl.Execute(os.Stdout, sweaters)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// 输出： 17 items are made of wool
+
+	// 空白
+	// 如果动作（Action）的分割符（默认是"{{") 后面紧跟一个"-"和一个空格, 前面紧接的文本的尾部
+	// 空白会被移除, 如果分割符"}}"前面跟一个空格和"-",紧接的文本的前面的所有空白被移除
+	// 这里的空白包括：空格、水平制表符、回车、换行
+
+	// templ := template.Must(template.New("h").Parse("{{23 -}} < {{- 25}}"))
+	// templ.Execute(os.Stdout, nil)
+	// 输出：23<25
+
+	// 动作
+	// 注释 {{/* 注释 */}} 或者 {{- /* 去除前后空白的注释 */ -}}
+	// t := template.Must(template.New("h").Parse(`{{/*这是注释*/ -}} 这里前面会引入两个空白, 加起来3个空格`))
+	// t.Execute(os.Stdout, nil)
+
+	// {{pipeline}} 管道，就是对传入数据的操作，相当于fmt.Print传入的数据
+	// 1. pipeline 的参数取值
+	// 2. go 中的基本类型
+	// 3. nil
+	// 4. . 点号，如下
+	//     t := template.Must(template.New("h").Parse("{{.}}"))
+	//     t.Execute(os.Stdout, "Test")
+	// 5. 变量名，$piOver 或者 $
+	// 6. 键，.Key .Field1.Key1等，不用非得大写字母开头，也可以是变量的字段$x.key1.key2
+	// 7. 方法，.Method, 方法必须有一个或两个返回值，如果是两个返回值，第二个值是error
+	// 如果第二个参数error!=nil，Execute返回错误,方法也可以级联，$x.Method1().Field2.Method2()
+	// 8. 函数，返回值跟方法相同
+	// 9. 括号实例 （.F1 arg1)
+	// 函数或方法不带参数，用7的方式调用，如果函数或方法带参数，用9的方式调用
+	// t := template.Must(template.New("h").Parse(`
+	// 	{{- $age := .Age -}}
+	// 	{{(.Greet "zhangsan")}}, I'm {{$age}} years old`))
+	// t.Execute(os.Stdout, &Person{})
+
+	// 	v := []int{1, 2, 3, 4, 5}
+	// 	t := template.Must(template.New("h").Parse(`
+	// {{- range $index, $val := . -}}
+	// {{$index}}:{{$val}}
+	// {{end}}`))
+
+	// t.Execute(os.Stdout, v)
+}
+
+type Person struct {
+}
+
+func (p *Person) Greet(name string) string {
+	return fmt.Sprintf("Hello, %s", name)
+}
+
+func (p *Person) Age() int {
+	return 30
+}
