@@ -1,0 +1,34 @@
+{{template "layout.html" .}}
+{{define "title"}}联系人-新建{{end}}
+{{define "content"}}
+<form action="/contacts/new" method="post">
+    <fieldset>
+        <legend>联系人信息</legend>
+        <p>
+            <label for="email">Email</label>
+            <input name="email" type="email" placeholder="Email" value="{{.Email}}">
+            <span class="error">{{.Errors.Email}}</span>
+        </p>
+        <p>
+            <label for="first_name">FirstName</label>
+            <input name="first_name" id="first_name" type="text" placeholder="First Name" value="{{.FirstName}}">
+            <span class="error">{{.Errors.FirstName}}</span>
+        </p>
+        <p>
+            <label for="last_name">LastName</label>
+            <input name="last_name" id="last_name" type="text" placeholder="Last Name" value="{{.LastName}}">
+            <span class="error">{{.Errors.LastName}}</span>
+        </p>
+        <p>
+            <label for="phone">Phone</label>
+            <input name="phone" id="phone" type="text" placeholder="Phone Number" value="{{.Phone}}">
+            <span class="error">{{.Errors.Phone}}</span>
+        </p>
+        <button>保存</button>
+    </fieldset>
+</form>
+
+<p>
+    <a href="/contacts">Back</a>
+</p>
+{{end}}

@@ -1,83 +1,149 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"text/template"
+	"embed"
+	"errors"
+	"html/template"
+	"log"
+	"net/http"
+	"strings"
+
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
-// 这种结构被称为动作(Actions)
-// {{.}}
-// 动作之外的文本会原封不动的输出
+//go:embed views
+var views embed.FS
 
-// type Inventory struct {
-// 	Material string
-// 	Count    uint
-// }
+//go:embed static
+var static embed.FS
+
+type Contact struct {
+	Id        int
+	FirstName string
+	LastName  string
+	Phone     string
+	Email     string
+	Errors    map[string]string
+}
+
+var contacts []Contact = []Contact{
+	{Id: 1, FirstName: "John", LastName: "Smith", Phone: "123-456-7890", Email: "john@example.comz"},
+	{Id: 2, FirstName: "Dana", LastName: "Crandith", Phone: "123-456-7890", Email: "dcran@example.com"},
+	{Id: 3, FirstName: "Edith", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en@example.com"},
+}
+
+type ContactManager struct {
+	contacts []Contact
+}
+
+var manager *ContactManager = NewContactManager()
+
+func NewContactManager() *ContactManager {
+	return &ContactManager{
+		contacts: contacts,
+	}
+}
+
+func (m *ContactManager) Search(s string) []*Contact {
+	var ret []*Contact
+	for i := range m.contacts {
+		c := m.contacts[i]
+		if strings.Contains(c.FirstName, s) {
+			ret = append(ret, &c)
+		}
+	}
+	return ret
+}
+
+func (m *ContactManager) All() []*Contact {
+	var ret []*Contact
+	for i := range m.contacts {
+		c := m.contacts[i]
+		ret = append(ret, &c)
+	}
+	return ret
+}
+
+func (m *ContactManager) Add(c *Contact) error {
+	for i := range m.contacts {
+		c1 := m.contacts[i]
+		if c1.FirstName == c.FirstName {
+			if c.Errors == nil {
+				c.Errors = make(map[string]string)
+			}
+			c.Errors["FirstName"] = "already exists"
+			// c.Errors["LastName"] = ""
+			// c.Errors["Email"] = ""
+			// c.Errors["Phone"] = ""
+
+			return errors.New("replicated")
+		}
+	}
+	m.contacts = append(m.contacts, *c)
+	return nil
+}
 
 func main() {
-	// sweaters := Inventory{"wool", 17}
-	// tmpl, err := template.New("test").Parse("{{.Count}} items are made of {{.Material}}")
-	// if err != nil {
-	// 	panic(err)
-	// }
+	t := &Template{
+		templates: template.Must(template.ParseFS(views, "views/*.html")),
+	}
+	e := echo.New()
+	e.Renderer = t
+	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		HTML5:      true,
+		Root:       "static",
+		Filesystem: http.FS(static),
+	}))
+	e.Use(middleware.Logger())
 
-	// err = tmpl.Execute(os.Stdout, sweaters)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	e.GET("/", func(c echo.Context) error {
+		return c.Redirect(http.StatusFound, "/contacts")
+	})
+	e.GET("/contacts", func(c echo.Context) error {
+		var contacts []*Contact
+		search := c.QueryParam("q")
+		if search != "" {
+			contacts = manager.Search(search)
+		} else {
+			contacts = manager.All()
+		}
+		data := struct {
+			SearchStr string
+			Contacts  []*Contact
+		}{
+			SearchStr: search,
+			Contacts:  contacts,
+		}
+		return c.Render(200, "index.html", &data)
+	})
 
-	// 输出： 17 items are made of wool
+	e.GET("/contacts/:id", func(c echo.Context) error {
+		return nil
+	})
 
-	// 空白
-	// 如果动作（Action）的分割符（默认是"{{") 后面紧跟一个"-"和一个空格, 前面紧接的文本的尾部
-	// 空白会被移除, 如果分割符"}}"前面跟一个空格和"-",紧接的文本的前面的所有空白被移除
-	// 这里的空白包括：空格、水平制表符、回车、换行
+	e.GET("/contacts/:id/edit", func(c echo.Context) error {
+		return nil
+	})
 
-	// templ := template.Must(template.New("h").Parse("{{23 -}} < {{- 25}}"))
-	// templ.Execute(os.Stdout, nil)
-	// 输出：23<25
+	e.GET("/contacts/new", func(c echo.Context) error {
+		return c.Render(http.StatusOK, "new.html", nil)
+	})
 
-	// 动作
-	// 注释 {{/* 注释 */}} 或者 {{- /* 去除前后空白的注释 */ -}}
-	// t := template.Must(template.New("h").Parse(`{{/*这是注释*/ -}} 这里前面会引入两个空白, 加起来3个空格`))
-	// t.Execute(os.Stdout, nil)
+	e.POST("/contacts/new", func(c echo.Context) error {
+		var contact Contact
+		contact.FirstName = c.FormValue("first_name")
+		contact.Email = c.FormValue("email")
+		contact.LastName = c.FormValue("last_name")
+		contact.Phone = c.FormValue("phone")
 
-	// {{pipeline}} 管道，就是对传入数据的操作，相当于fmt.Print传入的数据
-	// 1. pipeline 的参数取值
-	// 2. go 中的基本类型
-	// 3. nil
-	// 4. . 点号，如下
-	//     t := template.Must(template.New("h").Parse("{{.}}"))
-	//     t.Execute(os.Stdout, "Test")
-	// 5. 变量名，$piOver 或者 $
-	// 6. 键，.Key .Field1.Key1等，不用非得大写字母开头，也可以是变量的字段$x.key1.key2
-	// 7. 方法，.Method, 方法必须有一个或两个返回值，如果是两个返回值，第二个值是error
-	// 如果第二个参数error!=nil，Execute返回错误,方法也可以级联，$x.Method1().Field2.Method2()
-	// 8. 函数，返回值跟方法相同
-	// 9. 括号实例 （.F1 arg1)
-	// 函数或方法不带参数，用7的方式调用，如果函数或方法带参数，用9的方式调用
-	// t := template.Must(template.New("h").Parse(`
-	// 	{{- $age := .Age -}}
-	// 	{{(.Greet "zhangsan")}}, I'm {{$age}} years old`))
-	// t.Execute(os.Stdout, &Person{})
+		if err := manager.Add(&contact); err != nil {
+			return c.Render(http.StatusOK, "new.html", &contact)
+		}
+		return c.Redirect(http.StatusFound, "/contacts")
+	})
 
-	// 	v := []int{1, 2, 3, 4, 5}
-	// 	t := template.Must(template.New("h").Parse(`
-	// {{- range $index, $val := . -}}
-	// {{$index}}:{{$val}}
-	// {{end}}`))
-
-	// t.Execute(os.Stdout, v)
-}
-
-type Person struct {
-}
-
-func (p *Person) Greet(name string) string {
-	return fmt.Sprintf("Hello, %s", name)
-}
-
-func (p *Person) Age() int {
-	return 30
+	if err := e.Start("localhost:8080"); err != nil {
+		log.Panic(err)
+	}
 }
