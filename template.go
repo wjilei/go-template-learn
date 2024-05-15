@@ -8,11 +8,12 @@ import (
 )
 
 type Template struct {
+	path      string
 	templates *template.Template
 }
 
 func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	t1 := template.Must(t.templates.Clone())
-	t1 = template.Must(t1.ParseGlob("views/" + name))
+	t1 = template.Must(t1.ParseGlob(t.path + "/" + name))
 	return t1.ExecuteTemplate(w, name, data)
 }
