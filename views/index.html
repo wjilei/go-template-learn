@@ -1,35 +1,53 @@
 {{template "layout.html" .}}
 {{define "title"}}联系人{{end}}
 {{define "content"}}
-<form action="/contacts" method="get">
-    <label for="search">搜索</label>
-    <input id="search" type="search" name="q" value="{{with .SearchStr}}{{.}}{{else}}{{end}}">
-    <input type="submit" value="点击搜索">
-</form>
+<div class="container mx-auto">
+    <div class="mb-2 mt-2">
+        <form action="/contacts" method="get">
+            <label for="search">搜索</label>
+            <input id="search" type="search"
+             name="q" value="{{with .SearchStr}}{{.}}{{else}}{{end}}"
+             class="border rounded px-2 py-1 focus:border-collapse">
+            <input type="submit" value="点击搜索" 
+            class="bg-sky-500 px-2 text-center border-2 hover:bg-sky-300 rounded">
+        </form>
+    </div>
+    
+    <div class="mb-2">
+        <table class="table border w-full">
+            <thead class="bg-gray-400">
+                <tr class="border border-gray-400">
+                    <th class="px-4">First</th>
+                    <th class="px-4">Last</th>
+                    <th class="px-4">Phone</th>
+                    <th class="px-4">Email</th>
+                    <th class="px-4">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range $contact := .Contacts}}
+                    <tr class="border-b border-b-gray-400">
+                        <td class="px-4">{{$contact.FirstName}}</td>
+                        <td class="px-4">{{$contact.LastName}}</td>
+                        <td class="px-4">{{$contact.Phone}}</td>
+                        <td class="px-4">{{$contact.Email}}</td>
+                        <td class="px-4">
+                            <a href="/contacts/{{$contact.Id}}/edit" class="text-sky-500 hover:text-sky-300 mx-1">编辑</a>
+                            <a href="/contacts/{{$contact.Id}}" class="text-sky-500 hover:text-sky-300 mx-1">查看</a>
+                        </td>
+                    </tr>
+                {{end}}
+            </tbody>
+        </table>
+        
+    </div>
+    <div>
+        <a href="/contacts/new" 
+            class="text-sky-500 hover:text-sky-300">添加</a>
+    </div>
+    
+</div>
 
-<table class="table border border-gray-400">
-    <thead class="bg-gray-400">
-        <tr class="border border-gray-400">
-            <th class="p-4">First</th>
-            <th class="p-4">Last</th>
-            <th class="p-4">Phone</th>
-            <th class="p-4">Email</th>
-            <th class="p-4">操作</th>
-        </tr>
-    </thead>
-    <tbody>
-        {{range $contact := .Contacts}}
-            <tr>
-                <td class="p-4">{{$contact.FirstName}}</td>
-                <td class="p-4">{{$contact.LastName}}</td>
-                <td class="p-4">{{$contact.Phone}}</td>
-                <td class="p-4">{{$contact.Email}}</td>
-                <td class="p-4"><a href="/contacts/{{$contact.Id}}/edit">编辑</a> <a href="/contacts/{{$contact.Id}}">查看</a></td>
-            </tr>
-        {{end}}
-    </tbody>
-</table>
 
-<a href="/contacts/new">添加</a>
 
 {{end}}
