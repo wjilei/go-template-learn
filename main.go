@@ -87,6 +87,7 @@ func (m *ContactManager) Add(c *Contact) error {
 func main() {
 	t := &Template{
 		templates: template.Must(template.ParseFS(views, "views/*.html")),
+		// templates: template.Must(template.ParseGlob("views/*.html")),
 	}
 	e := echo.New()
 	e.Renderer = t

@@ -7,23 +7,24 @@
     <input type="submit" value="点击搜索">
 </form>
 
-<table>
-    <thead>
-        <tr>
-            <th>First</th>
-            <th>Last</th>
-            <th>Phone</th>
-            <th>Email</th>
+<table class="table border border-gray-400">
+    <thead class="bg-gray-400">
+        <tr class="border border-gray-400">
+            <th class="p-4">First</th>
+            <th class="p-4">Last</th>
+            <th class="p-4">Phone</th>
+            <th class="p-4">Email</th>
+            <th class="p-4">操作</th>
         </tr>
     </thead>
     <tbody>
         {{range $contact := .Contacts}}
             <tr>
-                <td>{{$contact.FirstName}}</td>
-                <td>{{$contact.LastName}}</td>
-                <td>{{$contact.Phone}}</td>
-                <td>{{$contact.Email}}</td>
-                <td><a href="/contacts/{{$contact.Id}}/edit">编辑</a> <a href="/contacts/{{$contact.Id}}">查看</a></td>
+                <td class="p-4">{{$contact.FirstName}}</td>
+                <td class="p-4">{{$contact.LastName}}</td>
+                <td class="p-4">{{$contact.Phone}}</td>
+                <td class="p-4">{{$contact.Email}}</td>
+                <td class="p-4"><a href="/contacts/{{$contact.Id}}/edit">编辑</a> <a href="/contacts/{{$contact.Id}}">查看</a></td>
             </tr>
         {{end}}
     </tbody>
