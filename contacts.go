@@ -70,3 +70,32 @@ func (m *ContactManager) Add(c *Contact) error {
 	m.contacts = append(m.contacts, *c)
 	return nil
 }
+
+func (m *ContactManager) Update(c *Contact) error {
+	pos := -1
+	for i := range m.contacts {
+		cdb := m.contacts[i]
+
+		if c.Id != cdb.Id && c.FirstName == cdb.FirstName {
+			c.Errors["FirstName"] = "already exists"
+		}
+		if c.Id == cdb.Id {
+			pos = i
+		}
+	}
+	if pos == -1 {
+		return errors.New("fatal")
+	}
+	m.contacts[pos] = *c
+	return nil
+}
+
+func (m *ContactManager) Get(id int) (*Contact, error) {
+	for i := range m.contacts {
+		c := m.contacts[i]
+		if c.Id == id {
+			return &c, nil
+		}
+	}
+	return nil, errors.New("not found")
+}

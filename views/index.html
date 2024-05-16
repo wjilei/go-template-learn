@@ -7,31 +7,31 @@
             <label for="search">搜索</label>
             <input id="search" type="search"
              name="q" value="{{with .SearchStr}}{{.}}{{else}}{{end}}"
-             class="border rounded px-2 py-1 focus:border-collapse">
+             class="border-2 border-gray-400 rounded px-2 py-1 focus:border-green-600 focus:outline-none">
             <input type="submit" value="点击搜索" 
-            class="bg-sky-500 px-2 text-center border-2 hover:bg-sky-300 rounded">
+            class="bg-sky-500 px-2 py-1 cursor-pointer text-center text-white focus:border-2 focus:border-sky-300 hover:bg-sky-400 hover:border-2 hover:border-sky-300 rounded">
         </form>
     </div>
     
     <div class="mb-2">
-        <table class="table border w-full">
-            <thead class="bg-gray-400">
-                <tr class="border border-gray-400">
-                    <th class="px-4">First</th>
-                    <th class="px-4">Last</th>
-                    <th class="px-4">Phone</th>
-                    <th class="px-4">Email</th>
-                    <th class="px-4">操作</th>
+        <table class="table border border-sky-400 w-full">
+            <thead class="bg-sky-900 text-white">
+                <tr>
+                    <th class="px-4 border-r">First</th>
+                    <th class="px-4 border-r">Last</th>
+                    <th class="px-4 border-r">Phone</th>
+                    <th class="px-4 border-r">Email</th>
+                    <th class="px-4 border-r">操作</th>
                 </tr>
             </thead>
             <tbody>
                 {{range $contact := .Contacts}}
-                    <tr class="border-b border-b-gray-400">
-                        <td class="px-4">{{$contact.FirstName}}</td>
-                        <td class="px-4">{{$contact.LastName}}</td>
-                        <td class="px-4">{{$contact.Phone}}</td>
-                        <td class="px-4">{{$contact.Email}}</td>
-                        <td class="px-4">
+                    <tr class="border-b border-2 border-b-sky-400">
+                        <td class="px-4 border-2 border-r border-r-sky-400">{{$contact.FirstName}}</td>
+                        <td class="px-4 border-2 border-r border-r-sky-400">{{$contact.LastName}}</td>
+                        <td class="px-4 border-2 border-r border-r-sky-400">{{$contact.Phone}}</td>
+                        <td class="px-4 border-2 border-r border-r-sky-400">{{$contact.Email}}</td>
+                        <td class="px-4 border-2 border-r border-r-sky-400">
                             <a href="/contacts/{{$contact.Id}}/edit" class="text-sky-500 hover:text-sky-300 mx-1">编辑</a>
                             <a href="/contacts/{{$contact.Id}}" class="text-sky-500 hover:text-sky-300 mx-1">查看</a>
                         </td>

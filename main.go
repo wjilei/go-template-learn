@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -57,7 +58,24 @@ func main() {
 	})
 
 	e.GET("/contacts/:id/edit", func(c echo.Context) error {
-		return nil
+		id, _ := strconv.Atoi(c.Param("id"))
+		contact, _ := manager.Get(id)
+		return c.Render(http.StatusOK, "edit.html", contact)
+	})
+	e.POST("/contacts/:id", func(c echo.Context) error {
+		id, _ := strconv.Atoi(c.Param("id"))
+		contact, _ := manager.Get(id)
+		contact.FirstName = c.FormValue("first_name")
+		contact.Email = c.FormValue("email")
+		contact.LastName = c.FormValue("last_name")
+		contact.Phone = c.FormValue("phone")
+
+		if err := manager.Update(contact); err != nil {
+			return c.Render(http.StatusOK, "edit.html", contact)
+		}
+
+		return c.Redirect(http.StatusFound, "/contacts")
+
 	})
 
 	e.GET("/contacts/new", func(c echo.Context) error {
