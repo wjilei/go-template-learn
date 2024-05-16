@@ -99,3 +99,19 @@ func (m *ContactManager) Get(id int) (*Contact, error) {
 	}
 	return nil, errors.New("not found")
 }
+
+func (m *ContactManager) Delete(id int) {
+	var pos int = -1
+	for i, c := range m.contacts {
+		if c.Id == id {
+			pos = i
+		}
+	}
+	if pos == -1 {
+		return
+	}
+
+	v := m.contacts[:pos]
+	v = append(v, m.contacts[pos+1:]...)
+	m.contacts = v
+}

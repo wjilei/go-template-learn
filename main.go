@@ -53,9 +53,9 @@ func main() {
 		return c.Render(200, "index.html", &data)
 	})
 
-	e.GET("/contacts/:id", func(c echo.Context) error {
-		return nil
-	})
+	e.GET("/contacts/:id", contact_view)
+
+	e.POST("/contacts/:id/delete", contact_delete)
 
 	e.GET("/contacts/:id/edit", func(c echo.Context) error {
 		id, _ := strconv.Atoi(c.Param("id"))
@@ -98,4 +98,17 @@ func main() {
 	if err := e.Start("localhost:8080"); err != nil {
 		log.Panic(err)
 	}
+}
+
+func contact_view(c echo.Context) error {
+	id, _ := strconv.Atoi(c.Param("id"))
+	contact, _ := manager.Get(id)
+	c.Render(http.StatusOK, "show.html", contact)
+	return nil
+}
+
+func contact_delete(c echo.Context) error {
+	id, _ := strconv.Atoi(c.Param("id"))
+	manager.Delete(id)
+	return c.Redirect(http.StatusFound, "/contacts")
 }
