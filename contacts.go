@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"regexp"
 	"strings"
 )
 
@@ -53,34 +54,100 @@ func (m *ContactManager) All() []*Contact {
 }
 
 func (m *ContactManager) Add(c *Contact) error {
+	if c.Errors == nil {
+		c.Errors = make(map[string]string)
+	}
+	var idMax int = -1
 	for i := range m.contacts {
 		c1 := m.contacts[i]
+		if c1.Id > idMax {
+			idMax = c1.Id
+		}
 		if c1.FirstName == c.FirstName {
-			if c.Errors == nil {
-				c.Errors = make(map[string]string)
-			}
 			c.Errors["FirstName"] = "already exists"
-			// c.Errors["LastName"] = ""
-			// c.Errors["Email"] = ""
-			// c.Errors["Phone"] = ""
-
+			return errors.New("replicated")
+		}
+		if c.LastName == c1.LastName {
+			c.Errors["LastName"] = "already exists"
+			return errors.New("replicated")
+		}
+		if c.Email == c1.Email {
+			c.Errors["Email"] = "already exists"
+			return errors.New("replicated")
+		}
+		if c.Phone == c1.Phone {
+			c.Errors["Email"] = "already exists"
 			return errors.New("replicated")
 		}
 	}
+	c.Id = idMax + 1
 	m.contacts = append(m.contacts, *c)
 	return nil
 }
 
 func (m *ContactManager) Update(c *Contact) error {
 	pos := -1
+	if c.Errors == nil {
+		c.Errors = make(map[string]string)
+	}
+	if c.FirstName == "" {
+		c.Errors["FirstName"] = "cannot be empty"
+		return errors.New("empty first name")
+	}
+	if c.LastName == "" {
+		c.Errors["LastName"] = "cannot be empty"
+		return errors.New("empty last name")
+	}
+	if c.Email == "" {
+		c.Errors["Email"] = "cannot be empty"
+		return errors.New("empty email")
+	}
+	if c.Phone == "" {
+		c.Errors["Phone"] = "cannot be empty"
+		return errors.New("empty phone")
+	}
+
+	if !regexp.MustCompile(`^\d{3}-\d{3}-\d{4}$`).MatchString(c.Phone) {
+		c.Errors["Phone"] = "invalid phone format"
+		return errors.New("invalid phone format")
+	}
+	if !regexp.MustCompile(`^.*@.*\..*$`).MatchString(c.Email) {
+		c.Errors["Email"] = "invalid email format"
+		return errors.New("invalid email format")
+	}
+
 	for i := range m.contacts {
 		cdb := m.contacts[i]
 
-		if c.Id != cdb.Id && c.FirstName == cdb.FirstName {
-			c.Errors["FirstName"] = "already exists"
+		if c.Id != cdb.Id {
+			if c.FirstName == cdb.FirstName {
+				c.Errors["FirstName"] = "already exists"
+				return errors.New("replicated")
+			}
+			if c.LastName == cdb.LastName {
+				c.Errors["LastName"] = "already exists"
+				return errors.New("replicated")
+			}
+			if c.Email == cdb.Email {
+				c.Errors["Email"] = "already exists"
+				return errors.New("replicated")
+			}
+			if c.Phone == cdb.Phone {
+				c.Errors["Email"] = "already exists"
+				return errors.New("replicated")
+			}
 		}
 		if c.Id == cdb.Id {
 			pos = i
+		}
+
+		if !regexp.MustCompile(`^\d{3}-\d{3}-\d{4}$`).MatchString(c.Phone) {
+			c.Errors["Phone"] = "invalid phone format"
+			return errors.New("invalid phone format")
+		}
+		if !regexp.MustCompile(`^.*@.*\..*$`).MatchString(c.Email) {
+			c.Errors["Email"] = "invalid email format"
+			return errors.New("invalid email format")
 		}
 	}
 	if pos == -1 {
