@@ -39,7 +39,18 @@
                 {{end}}
             </tbody>
         </table>
-        
+    </div>
+    <div>
+        <span>
+        第{{.Page}}页
+        </span>
+        <span>
+            {{if gt .Page 1}}<a href="/contacts?page={{Dec .Page}}&limit={{.PageSize}}{{with .SearchStr}}&q={{.}}{{else}}{{end}}">上一页</a>{{end}}
+            {{if lt .Page (Inc (Div .Total .PageSize))}}<a href="/contacts?page={{Inc .Page}}&limit={{.PageSize}}{{with .SearchStr}}&q={{.}}{{else}}{{end}}">下一页</a>{{end}}
+        </span>
+        <span>
+        共{{(Inc (Div .Total .PageSize))}}页
+        </span>
     </div>
     <div>
         <a href="/contacts/new" 

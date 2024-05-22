@@ -4,11 +4,15 @@
 <div class="container m-auto">
     <form action="/contacts/{{.Id}}" method="post">
         <fieldset>
-            <legend>联系人信息</legend>
+            <legend class="text-3xl mb-3">联系人信息</legend>
             <p class="mb-2">
                 <label for="email" class="inline-block w-20 text-right">Email</label>
-                <input name="email" type="email" placeholder="Email" value="{{.Email}}" class="border-2 border-gray-400 rounded px-2 py-1 focus:border-green-600 focus:outline-none">
-                <span class="text-sm text-red-500">{{.Errors.Email}}</span>
+                <input name="email" id="email" type="email" 
+                    hx-get="/contacts/{{.Id}}/email"
+                    hx-target="next .error"
+                    hx-trigger="change, keyup delay:200ms changed"
+                    placeholder="Email" value="{{.Email}}" class="border-2 border-gray-400 rounded px-2 py-1 focus:border-green-600 focus:outline-none">
+                <span class="text-sm text-red-500 error">{{.Errors.Email}}</span>
             </p>
             <p class="mb-2">
                 <label for="first_name" class="inline-block w-20 text-right">FirstName</label>
@@ -28,11 +32,9 @@
             <button class="bg-sky-500 px-2 py-1 cursor-pointer text-center text-white focus:border-2 focus:border-sky-300 hover:bg-sky-400 hover:border-2 hover:border-sky-300 rounded" >保存</button>
         </fieldset>
     </form>
-
-    <form action="/contacts/{{.Id}}/delete" method="post">
-        <button>删除</button>
-    </form>
     
+    <button hx-delete="/contacts/{{.Id}}" hx-target="body" hx-push-url="true" hx-confirm="确定要删除吗?"
+        class="bg-sky-500 px-2 py-1 cursor-pointer text-center text-white focus:border-2 focus:border-sky-300 hover:bg-sky-400 hover:border-2 hover:border-sky-300 rounded">删除</button>
     <p class="mt-2">
         <a href="/contacts" class="text-sky-500 hover:text-sky-400">Back</a>
     </p>

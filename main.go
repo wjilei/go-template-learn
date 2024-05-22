@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"regexp"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -18,11 +20,25 @@ var views embed.FS
 var static embed.FS
 
 func main() {
+	templ := template.New("temps")
+	templ.Funcs(template.FuncMap{
+		"Inc": func(a int) int {
+			return a + 1
+		},
+		"Dec": func(a int) int {
+			return a - 1
+		},
+		"Div": func(a, b int) int {
+			return a / b
+		},
+	})
+
 	t := &Template{
 		path:      "views",
-		templates: template.Must(template.ParseFS(views, "views/*.html")),
+		templates: template.Must(templ.ParseFS(views, "views/*.html")),
 		// templates: template.Must(template.ParseGlob("views/*.html")),
 	}
+
 	e := echo.New()
 	e.Renderer = t
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
@@ -37,25 +53,42 @@ func main() {
 	})
 	e.GET("/contacts", func(c echo.Context) error {
 		var contacts []*Contact
+		var total int
 		search := c.QueryParam("q")
-		if search != "" {
-			contacts = manager.Search(search)
-		} else {
-			contacts = manager.All()
+		page, err := strconv.Atoi(c.QueryParam("page"))
+		if err != nil {
+			page = 1
 		}
+		limit, err := strconv.Atoi(c.QueryParam("limit"))
+		if err != nil {
+			limit = 10
+		}
+
+		if search != "" {
+			contacts, total = manager.Search(search, page, limit)
+		} else {
+			contacts, total = manager.All(page, limit)
+		}
+
 		data := struct {
 			SearchStr string
 			Contacts  []*Contact
+			Total     int
+			Page      int
+			PageSize  int
 		}{
 			SearchStr: search,
 			Contacts:  contacts,
+			Page:      page,
+			PageSize:  limit,
+			Total:     total,
 		}
 		return c.Render(200, "index.html", &data)
 	})
 
 	e.GET("/contacts/:id", contact_view)
 
-	e.POST("/contacts/:id/delete", contact_delete)
+	e.DELETE("/contacts/:id", contact_delete)
 
 	e.GET("/contacts/:id/edit", func(c echo.Context) error {
 		id, _ := strconv.Atoi(c.Param("id"))
@@ -69,13 +102,20 @@ func main() {
 		contact.Email = c.FormValue("email")
 		contact.LastName = c.FormValue("last_name")
 		contact.Phone = c.FormValue("phone")
-
 		if err := manager.Update(contact); err != nil {
 			return c.Render(http.StatusOK, "edit.html", contact)
 		}
 
 		return c.Redirect(http.StatusFound, "/contacts")
+	})
 
+	e.GET("/contacts/:id/email", func(c echo.Context) error {
+		email := c.QueryParam("email")
+
+		if !regexp.MustCompile(`^.*@.*\..*$`).MatchString(email) {
+			return c.String(http.StatusOK, "invalid email")
+		}
+		return c.String(http.StatusOK, "")
 	})
 
 	e.GET("/contacts/new", func(c echo.Context) error {
@@ -110,5 +150,5 @@ func contact_view(c echo.Context) error {
 func contact_delete(c echo.Context) error {
 	id, _ := strconv.Atoi(c.Param("id"))
 	manager.Delete(id)
-	return c.Redirect(http.StatusFound, "/contacts")
+	return c.Redirect(http.StatusSeeOther, "/contacts")
 }

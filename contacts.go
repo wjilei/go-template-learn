@@ -18,7 +18,28 @@ type Contact struct {
 var contacts []Contact = []Contact{
 	{Id: 1, FirstName: "John", LastName: "Smith", Phone: "123-456-7890", Email: "john@example.comz"},
 	{Id: 2, FirstName: "Dana", LastName: "Crandith", Phone: "123-456-7890", Email: "dcran@example.com"},
-	{Id: 3, FirstName: "Edith", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en@example.com"},
+	{Id: 3, FirstName: "Edith1", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en1@example.com"},
+	{Id: 4, FirstName: "Edith2", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en2@example.com"},
+	{Id: 5, FirstName: "Edith3", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en3@example.com"},
+	{Id: 6, FirstName: "Edith4", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en4@example.com"},
+	{Id: 7, FirstName: "Edith5", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en5@example.com"},
+	{Id: 8, FirstName: "Edith6", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en6@example.com"},
+	{Id: 9, FirstName: "Edith7", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en7@example.com"},
+	{Id: 10, FirstName: "Edith8", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en8@example.com"},
+	{Id: 11, FirstName: "Edith9", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en9@example.com"},
+	{Id: 12, FirstName: "Edith10", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en10@example.com"},
+	{Id: 13, FirstName: "Edith10", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en11@example.com"},
+	{Id: 14, FirstName: "Edith11", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en12@example.com"},
+	{Id: 15, FirstName: "Edith11", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en13@example.com"},
+	{Id: 16, FirstName: "Edith11", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en14@example.com"},
+	{Id: 17, FirstName: "Edith11", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en15@example.com"},
+	{Id: 18, FirstName: "Edith11", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en16@example.com"},
+	{Id: 19, FirstName: "Edith11", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en17@example.com"},
+	{Id: 20, FirstName: "Edith11", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en18@example.com"},
+	{Id: 21, FirstName: "Edith11", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en19@example.com"},
+	{Id: 22, FirstName: "Edith11", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en20@example.com"},
+	{Id: 23, FirstName: "Edith11", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en21@example.com"},
+	{Id: 24, FirstName: "Edith11", LastName: "Neutvaar", Phone: "123-456-7890", Email: "en22@example.com"},
 }
 
 type ContactManager struct {
@@ -33,7 +54,7 @@ func NewContactManager() *ContactManager {
 	}
 }
 
-func (m *ContactManager) Search(s string) []*Contact {
+func (m *ContactManager) Search(s string, page, limit int) ([]*Contact, int) {
 	var ret []*Contact
 	for i := range m.contacts {
 		c := m.contacts[i]
@@ -41,16 +62,36 @@ func (m *ContactManager) Search(s string) []*Contact {
 			ret = append(ret, &c)
 		}
 	}
-	return ret
+
+	total := len(ret)
+	start := (page - 1) * limit
+	end := start + limit
+	if start > total {
+		start = total
+	}
+	if end > total {
+		end = total
+	}
+	return ret[start:end], total
 }
 
-func (m *ContactManager) All() []*Contact {
+func (m *ContactManager) All(page, limit int) ([]*Contact, int) {
 	var ret []*Contact
 	for i := range m.contacts {
 		c := m.contacts[i]
 		ret = append(ret, &c)
 	}
-	return ret
+
+	total := len(ret)
+	start := (page - 1) * limit
+	end := start + limit
+	if start > total {
+		start = total
+	}
+	if end > total {
+		end = total
+	}
+	return ret[start:end], total
 }
 
 func (m *ContactManager) Add(c *Contact) error {
@@ -63,20 +104,8 @@ func (m *ContactManager) Add(c *Contact) error {
 		if c1.Id > idMax {
 			idMax = c1.Id
 		}
-		if c1.FirstName == c.FirstName {
-			c.Errors["FirstName"] = "already exists"
-			return errors.New("replicated")
-		}
-		if c.LastName == c1.LastName {
-			c.Errors["LastName"] = "already exists"
-			return errors.New("replicated")
-		}
 		if c.Email == c1.Email {
-			c.Errors["Email"] = "already exists"
-			return errors.New("replicated")
-		}
-		if c.Phone == c1.Phone {
-			c.Errors["Email"] = "already exists"
+			c.Errors["Email"] = "Email已存在"
 			return errors.New("replicated")
 		}
 	}
@@ -90,29 +119,21 @@ func (m *ContactManager) Update(c *Contact) error {
 	if c.Errors == nil {
 		c.Errors = make(map[string]string)
 	}
+	if c.Email == "" {
+		c.Errors["Email"] = "邮箱不能为空"
+		return errors.New("empty email")
+	}
 	if c.FirstName == "" {
-		c.Errors["FirstName"] = "cannot be empty"
+		c.Errors["FirstName"] = "FirstName不能为空"
 		return errors.New("empty first name")
 	}
 	if c.LastName == "" {
-		c.Errors["LastName"] = "cannot be empty"
+		c.Errors["LastName"] = "LastName不能为空"
 		return errors.New("empty last name")
 	}
-	if c.Email == "" {
-		c.Errors["Email"] = "cannot be empty"
-		return errors.New("empty email")
-	}
-	if c.Phone == "" {
-		c.Errors["Phone"] = "cannot be empty"
-		return errors.New("empty phone")
-	}
 
-	if !regexp.MustCompile(`^\d{3}-\d{3}-\d{4}$`).MatchString(c.Phone) {
-		c.Errors["Phone"] = "invalid phone format"
-		return errors.New("invalid phone format")
-	}
 	if !regexp.MustCompile(`^.*@.*\..*$`).MatchString(c.Email) {
-		c.Errors["Email"] = "invalid email format"
+		c.Errors["Email"] = "邮箱格式错误"
 		return errors.New("invalid email format")
 	}
 
@@ -120,20 +141,8 @@ func (m *ContactManager) Update(c *Contact) error {
 		cdb := m.contacts[i]
 
 		if c.Id != cdb.Id {
-			if c.FirstName == cdb.FirstName {
-				c.Errors["FirstName"] = "already exists"
-				return errors.New("replicated")
-			}
-			if c.LastName == cdb.LastName {
-				c.Errors["LastName"] = "already exists"
-				return errors.New("replicated")
-			}
 			if c.Email == cdb.Email {
-				c.Errors["Email"] = "already exists"
-				return errors.New("replicated")
-			}
-			if c.Phone == cdb.Phone {
-				c.Errors["Email"] = "already exists"
+				c.Errors["Email"] = "邮箱已存在"
 				return errors.New("replicated")
 			}
 		}
