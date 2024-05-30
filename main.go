@@ -14,14 +14,14 @@ import (
 )
 
 //go:embed views
-var views embed.FS
+var viewsFS embed.FS
 
 //go:embed static
 var static embed.FS
 
 func main() {
-	templ := template.New("temps")
-	templ.Funcs(template.FuncMap{
+	temps := template.New("temps")
+	temps.Funcs(template.FuncMap{
 		"Inc": func(a int) int {
 			return a + 1
 		},
@@ -33,10 +33,18 @@ func main() {
 		},
 	})
 
+	entries, err := viewsFS.ReadDir("views")
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, entry := range entries {
+		log.Println(entry.Name())
+	}
+
 	t := &Template{
+		fs:        viewsFS,
 		path:      "views",
-		templates: template.Must(templ.ParseFS(views, "views/*.html")),
-		// templates: template.Must(template.ParseGlob("views/*.html")),
+		templates: template.Must(temps.ParseFS(viewsFS, "views/*.html")),
 	}
 
 	e := echo.New()
@@ -135,7 +143,7 @@ func main() {
 		return c.Redirect(http.StatusFound, "/contacts")
 	})
 
-	if err := e.Start("localhost:8080"); err != nil {
+	if err := e.Start(":8080"); err != nil {
 		log.Panic(err)
 	}
 }
